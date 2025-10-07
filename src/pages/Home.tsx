@@ -1,8 +1,11 @@
 import { Typography, Button, Box } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import { Layout } from "../components/Layout";
 
 export function Home() {
+  const navigate = useNavigate();
+
   return (
     <Layout>
       <Box
@@ -45,6 +48,7 @@ export function Home() {
             mt: { xs: 2, md: 3 },
             px: { xs: 4, md: 6 },
           }}
+          onClick={() => navigate("/choose-gift")}
         >
           Começar!
         </Button>

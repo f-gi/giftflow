@@ -36,6 +36,8 @@ const theme = createTheme({
       default: colors.white,
       paper: colors.lightGrey,
     },
+    
+    divider: "#D8DCE2",
   },
 
   typography: {

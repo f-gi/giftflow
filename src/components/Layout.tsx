@@ -9,7 +9,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       sx={{
         minHeight: "100vh",
         display: "flex",
-        justifyContent: "center",
+        flexDirection: "column",
         alignItems: "center",
         backgroundColor: colors.lightBlue,
         px: { xs: 2, md: 14 },
@@ -17,10 +17,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
       }}
     >
       <Container
-        maxWidth={false}
+        disableGutters
+        maxWidth="md"
         sx={{
-          width: "100%",
-          maxWidth: "1000px",
           backgroundColor: colors.white,
           borderRadius: "20px",
           boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.05)",
@@ -28,13 +27,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
           flexDirection: "column",
           justifyContent: "space-between",
           minHeight: { xs: "auto", md: "600px" },
-          pt: "64px",
-          px: "20px",
-          pb: "20px",
-          gap: "40px",
+          p: { xs: 2, md: 4 },
+          width: "100%",
+          overflow: "hidden",
         }}
       >
-        {children}
+        <Box
+          sx={{
+            flex: 1,
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          {children}
+        </Box>
 
         <Footer />
       </Container>
