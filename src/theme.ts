@@ -9,6 +9,7 @@ export const colors = {
   grey: "#64748B",
   lightGrey: "#F4F4F4",
   white: "#FFFFFF",
+  lightBlue: "#EFF6FF",
 };
 
 const theme = createTheme({
@@ -42,7 +43,7 @@ const theme = createTheme({
   },
 
   shape: {
-    borderRadius: 61, // conforme Figma
+    borderRadius: 61,
   },
 
   components: {
