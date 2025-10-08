@@ -9,6 +9,7 @@ export function ChooseGift() {
   const [gifts, setGifts] = useState<any[]>([]);
   const [selectedGiftId, setSelectedGiftId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const theme = useTheme();
   const navigate = useNavigate();
 
@@ -19,6 +20,7 @@ export function ChooseGift() {
         setGifts(products);
       } catch (error) {
         console.error("Error fetching products:", error);
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -58,58 +60,88 @@ export function ChooseGift() {
           justifyItems="center"
           sx={{ maxWidth: "920px", mx: "auto", mb: 4, px: { xs: 1, md: 0 } }}
         >
-          {loading
-            ? skeletons.map((_, index) => (
-                <Box
-                  key={index}
+          {loading ? (
+            skeletons.map((_, index) => (
+              <Box
+                key={index}
+                sx={{
+                  width: "100%",
+                  maxWidth: "293px",
+                  height: "335px",
+                  borderRadius: "6px",
+                  border: `0.5px solid ${theme.palette.divider}`,
+                  backgroundColor: theme.palette.background.paper,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  p: 2,
+                }}
+              >
+                <Skeleton
+                  variant="rectangular"
+                  width="100%"
+                  height={261}
                   sx={{
-                    width: "100%",
-                    maxWidth: "293px",
-                    height: "335px",
-                    borderRadius: "6px",
-                    border: `0.5px solid ${theme.palette.divider}`,
-                    backgroundColor: theme.palette.background.paper,
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    p: 2,
+                    borderRadius: "4px",
+                    background: `linear-gradient(90deg,
+            ${theme.palette.background.paper} 25%,
+            ${theme.palette.divider} 50%,
+            ${theme.palette.background.paper} 75%)`,
+                    backgroundSize: "200% 100%",
+                    animation: "shimmer 1.5s infinite",
+                    "@keyframes shimmer": {
+                      "0%": { backgroundPosition: "-200% 0" },
+                      "100%": { backgroundPosition: "200% 0" },
+                    },
                   }}
-                >
-                  <Skeleton
-                    variant="rectangular"
-                    width="100%"
-                    height={261}
-                    sx={{
-                      borderRadius: "4px",
-                      background: `linear-gradient(90deg,
-                        ${theme.palette.background.paper} 25%,
-                        ${theme.palette.divider} 50%,
-                        ${theme.palette.background.paper} 75%)`,
-                      backgroundSize: "200% 100%",
-                      animation: "shimmer 1.5s infinite",
-                        "@keyframes shimmer": {
-                          "0%": { backgroundPosition: "-200% 0" },
-                          "100%": { backgroundPosition: "200% 0" },
-                        },
-                    }}
-                  />
-                  <Skeleton
-                    variant="text"
-                    width="60%"
-                    sx={{ mx: "auto", mt: 2 }}
-                  />
-                </Box>
-              ))
-            : gifts.map((gift) => (
-                <GiftCard
-                  key={gift.id}
-                  id={gift.id}
-                  name={gift.full_name}
-                  imageUrl={gift.image_url}
-                  selected={gift.id === selectedGiftId}
-                  onSelect={() => handleSelect(gift.id)}
                 />
-              ))}
+                <Skeleton
+                  variant="text"
+                  width="60%"
+                  sx={{ mx: "auto", mt: 2 }}
+                />
+              </Box>
+            ))
+          ) : error ? (
+            <Box
+              sx={{
+                gridColumn: "1 / -1",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: 200,
+              }}
+            >
+              <Typography color="text.secondary" textAlign="center">
+                Ocorreu um erro ao carregar os presentes.
+              </Typography>
+            </Box>
+          ) : gifts.length === 0 ? (
+            <Box
+              sx={{
+                gridColumn: "1 / -1",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: 200,
+              }}
+            >
+              <Typography color="text.secondary" sx={{ my: 6 }}>
+                Nenhum presente disponível no momento.
+              </Typography>
+            </Box>
+          ) : (
+            gifts.map((gift) => (
+              <GiftCard
+                key={gift.id}
+                id={gift.id}
+                name={gift.full_name}
+                imageUrl={gift.image_url}
+                selected={gift.id === selectedGiftId}
+                onSelect={() => handleSelect(gift.id)}
+              />
+            ))
+          )}
         </Box>
 
         <Box
