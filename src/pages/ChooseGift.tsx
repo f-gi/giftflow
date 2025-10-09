@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Box, Typography, Button, Skeleton, useTheme } from "@mui/material";
 import { Layout } from "../components/Layout";
 import { getCustomerProducts } from "../services/products";
+import { getRedeemPages } from "../services/redeem";
 import { GiftCard } from "../components/GiftCard";
 import { useNavigate } from "react-router-dom";
 
@@ -13,25 +14,69 @@ export function ChooseGift() {
   const theme = useTheme();
   const navigate = useNavigate();
 
+  // buscar a primeira campanha ativa
+  const fetchActiveCampaign = async () => {
+    const { redeem_pages } = await getRedeemPages();
+    const activePage = redeem_pages.find((p: any) => p.status === "ACTIVE");
+    if (!activePage) throw new Error("Nenhuma campanha ativa encontrada");
+    return activePage;
+  };
+
   useEffect(() => {
-    async function fetchProducts() {
+    const fetchData = async () => {
       try {
-        const products = await getCustomerProducts();
-        setGifts(products);
-      } catch (error) {
-        console.error("Error fetching products:", error);
+        const [activePage, products] = await Promise.all([
+          fetchActiveCampaign(),
+          getCustomerProducts(),
+        ]);
+        // lista de IDs de gifs permitidos nessa campanha
+        const allowedIds = activePage.items.map(
+          (item: any) => item.customer_product_id
+        );
+
+        const validProducts = products
+        // só gifts que estão na campanha
+          .filter((p: any) => allowedIds.includes(p.id))
+          // anexa os dados da campanha a cada gift
+          .map((p: any) => ({
+            ...p,
+            redeemPage: activePage,
+          }));
+
+        setGifts(validProducts);
+      } catch (err) {
+        console.error("Erro ao buscar gifts:", err);
         setError(true);
       } finally {
         setLoading(false);
       }
-    }
-    fetchProducts();
+    };
+
+    fetchData();
   }, []);
 
   const handleSelect = (id: string) => setSelectedGiftId(id);
-  const handleContinue = () =>
-    selectedGiftId &&
-    navigate("/user-info", { state: { giftId: selectedGiftId } });
+
+  const handleContinue = () => {
+    const selectedGift = gifts.find((g) => g.id === selectedGiftId);
+    if (!selectedGift) return;
+
+    const { redeemPage, ...giftWithoutPage } = selectedGift;
+
+    navigate("/user-info", {
+      state: {
+        gift: giftWithoutPage,
+        redeemPage: {
+          id: redeemPage.id,
+          title: redeemPage.title,
+          extra_questions: redeemPage.extra_questions,
+          button_color: redeemPage.button_color,
+          background_color: redeemPage.background_color,
+        },
+      },
+    });
+  };
+
   const handleBack = () => navigate("/");
 
   const skeletons = Array.from({ length: 6 });
@@ -84,9 +129,9 @@ export function ChooseGift() {
                   sx={{
                     borderRadius: "4px",
                     background: `linear-gradient(90deg,
-            ${theme.palette.background.paper} 25%,
-            ${theme.palette.divider} 50%,
-            ${theme.palette.background.paper} 75%)`,
+                      ${theme.palette.background.paper} 25%,
+                      ${theme.palette.divider} 50%,
+                      ${theme.palette.background.paper} 75%)`,
                     backgroundSize: "200% 100%",
                     animation: "shimmer 1.5s infinite",
                     "@keyframes shimmer": {
@@ -103,33 +148,17 @@ export function ChooseGift() {
               </Box>
             ))
           ) : error ? (
-            <Box
-              sx={{
-                gridColumn: "1 / -1",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: 200,
-              }}
+            <Typography
+              color="text.secondary"
+              textAlign="center"
+              sx={{ my: 6 }}
             >
-              <Typography color="text.secondary" textAlign="center">
-                Ocorreu um erro ao carregar os presentes.
-              </Typography>
-            </Box>
+              Ocorreu um erro ao carregar os presentes.
+            </Typography>
           ) : gifts.length === 0 ? (
-            <Box
-              sx={{
-                gridColumn: "1 / -1",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: 200,
-              }}
-            >
-              <Typography color="text.secondary" sx={{ my: 6 }}>
-                Nenhum presente disponível no momento.
-              </Typography>
-            </Box>
+            <Typography color="text.secondary" sx={{ my: 6 }}>
+              Nenhum presente disponível no momento.
+            </Typography>
           ) : (
             gifts.map((gift) => (
               <GiftCard
@@ -154,15 +183,7 @@ export function ChooseGift() {
             variant="outlined"
             color="primary"
             onClick={handleBack}
-            sx={{
-              borderRadius: "61px",
-              borderColor: theme.palette.primary.main,
-              color: theme.palette.primary.main,
-              "&:hover": {
-                borderColor: theme.palette.primary.dark,
-                backgroundColor: "transparent",
-              },
-            }}
+            sx={{ borderRadius: "61px" }}
           >
             Voltar
           </Button>
